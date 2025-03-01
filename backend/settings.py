@@ -128,4 +128,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Additional
 CORS_ALLOW_ALL_ORIGINS = True  # For dev only; restrict in production
-INSTALLED_APPS += ['corsheaders']
+INSTALLED_APPS += ['corsheaders', 'rest_framework.authtoken', 'channels']
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+
+ASGI_APPLICATION = 'backend.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # Simple backend for dev; use Redis in production
+    },
+}
