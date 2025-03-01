@@ -1,20 +1,18 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Item, Message, Category
-from .serializers import ItemSerializer, MessageSerializer, CategorySerializer
+from .models import Item, Category
+from .serializers import ItemSerializer, CategorySerializer
 import os
 from django.conf import settings
 
 class ItemListCreate(generics.ListCreateAPIView):
     queryset = Item.objects.all().order_by('-created_at')
     serializer_class = ItemSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Public can view, authenticated users can post
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # Public can view, authenticated can post
 
     def get_queryset(self):
-        if self.request.user.is_anonymous:
-            return Item.objects.filter(created_by__isnull=True)  # Public items only
-        return Item.objects.all()
+        return Item.objects.all()  # Public can view all items
 
     def perform_create(self, serializer):
         if self.request.user.is_anonymous:
@@ -32,28 +30,16 @@ class ItemListCreate(generics.ListCreateAPIView):
 class ItemDetail(generics.RetrieveAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # Public can view details
 
 class CategoryList(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-
-class MessageListCreate(generics.ListCreateAPIView):
-    serializer_class = MessageSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Only authenticated users can chat
-
-    def get_queryset(self):
-        item_id = self.request.query_params.get('item_id')
-        if not self.request.user.is_authenticated:
-            raise permissions.PermissionDenied("You must be logged in to view chats.")
-        return Message.objects.filter(item_id=item_id, receiver=self.request.user) | Message.objects.filter(item_id=item_id, sender=self.request.user)
-
-    def perform_create(self, serializer):
-        if not self.request.user.is_authenticated:
-            raise permissions.PermissionDenied("You must be logged in to send messages.")
-        serializer.save(sender=self.request.user)
+    permission_classes = [permissions.AllowAny]  # Public can view categories
 
 class SearchItems(APIView):
+    permission_classes = [permissions.AllowAny]  # Public can search
+
     def get(self, request):
         query = request.query_params.get('q', '')
         item_type = request.query_params.get('type', '')

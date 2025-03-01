@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Item, Message, Category
+from .models import Item, Category
 from django.contrib.auth.models import User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -18,11 +18,4 @@ class ItemSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category', write_only=True)
     class Meta:
         model = Item
-        fields = '__all__'
-
-class MessageSerializer(serializers.ModelSerializer):
-    sender = UserSerializer(read_only=True)
-    receiver = UserSerializer(read_only=True)
-    class Meta:
-        model = Message
         fields = '__all__'
